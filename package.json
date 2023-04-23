@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/rollup-external-imports",
   "description": "Provides a Rollup plugin that maps `imports` defined in `package.json` as external packages.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/index.js",
