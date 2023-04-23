@@ -5,12 +5,7 @@ import globToRegExp           from 'glob-to-regexp';
 import * as r                 from 'resolve.exports';
 
 /**
- * @param {object}   [options] - Options.
- *
- * @param {string[]} [options.importKeys] - Defines the `imports` keys in `package.json` to target. If undefined all
- *        `imports` entries are processed as external.
- *
- * @param {object}   [options.packageObj] - An explicit target `package.json` object.
+ * @param {ImportsExternalOptions}   [options] - Options.
  *
  * @returns {import('rollup').Plugin} Rollup plugin.
  */
@@ -191,3 +186,12 @@ function resolveImportId(source, packageObj)
 
    return result;
 }
+
+/**
+ * @typedef {object} ImportsExternalOptions
+ *
+ * @property {string[]} [importKeys] - Defines the `imports` keys in `package.json` to target. If undefined all
+ *        `imports` entries are processed as external.
+ *
+ * @property {object}   [packageObj] - An explicit target `package.json` object.
+ */
