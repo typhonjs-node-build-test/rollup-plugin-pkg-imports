@@ -1,0 +1,58 @@
+{
+  "name": "@typhonjs-build-test/rollup-external-imports",
+  "description": "Provides a Rollup plugin that maps `imports` defined in `package.json` as external packages.",
+  "version": "0.0.0",
+  "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "contributors": [
+    "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
+  ],
+  "dependencies": {
+    "@typhonjs-utils/package-json": "^0.6.0",
+    "glob-to-regexp": "^0.4.0",
+    "resolve.exports": "^2"
+  },
+  "devDependencies": {
+    "@typhonjs-build-test/esm-d-ts": "^0.0.16",
+    "@typhonjs-config/eslint-config": "^0.5.0",
+    "eslint": "^8"
+  },
+  "peerDependencies": {
+    "rollup": "^3"
+  },
+  "engines": {
+    "node": ">=14.18"
+  },
+  "files": [
+    "/npm-shrinkwrap.json",
+    "/src",
+    "/types"
+  ],
+  "homepage": "https://github.com/typhonjs-node-build-test/rollup-external-imports#readme",
+  "keywords": [
+    "typhonjs",
+    "build",
+    "package.json",
+    "imports",
+    "external",
+    "rollup",
+    "plugin"
+  ],
+  "license": "MPL-2.0",
+  "repository": "github:typhonjs-node-build-test/rollup-external-imports",
+  "bugs": "https://github.com/typhonjs-node-build-test/rollup-external-imports/issues",
+  "scripts": {
+    "eslint": "eslint .",
+    "prepublishOnly": "npm run types",
+    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(async module => { await module.generateDTS({ input: './src/index.js', output: './src/index.d.ts' }); });\""
+  }
+}
