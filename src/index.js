@@ -93,7 +93,7 @@ export function importsExternal(options)
          // Only explicit keys provided in `options`.
          if (options?.importKeys)
          {
-            for (const key of options?.importKeys)
+            for (const key of options.importKeys)
             {
                if (typeof packageObj.imports[key] !== 'string')
                {
