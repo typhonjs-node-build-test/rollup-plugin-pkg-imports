@@ -17,21 +17,25 @@ configuration array in addition to resolving against the value provided for each
 globs in defining the `imports` entries allowing targeting of external peer dependency packages that have sub-path 
 exports.
 
+By default all `imports` entries that refer to a local path starting with `.` are ignored.
+
 ## Examples
 
 Example `package.json` `imports` entry:
 ```json
 {
   "imports": {
-    "#external/*": "@my-external-package/*"
+    "#shortname/*": "@my-org-name/a-long-package-name/*"
   },
   "peerDependencies": {
-    "@my-external-package": ">=1.0.0"
+    "@my-org-name/a-long-package-name": ">=1.0.0"
   }
 }
 ```
 
-Above the `#external/*` is a shortened key for `@my-external-package`. You can abbreviate the keys however you like. 
+Above the `#shortname/*` is a shortened key for `@my-org-name/a-long-package-name`. You can abbreviate the keys 
+however you like. This allows the use of `import { thing } from '#shortname/thing';` rather than the fully qualified 
+name: `import { thing } from '@my-org-name/a-long-package-name/thing';`. 
 
 -------------------
 
@@ -71,12 +75,13 @@ You may provide a configuration object to `importsExternal` with the following e
 
 Usage inside a ESM JS source file (`./src/index.js`):
 ```js
-import { something } from '#external/sub-path';
+import { something } from '#shortname/sub-path';
 
 something('!!!');
 ```
 
-`#external/sub-path` is connected to `@my-external-package/sub-path` and not included in the bundled output. 
+`#shortname/sub-path` is connected to `@my-external-package/a-long-package-name/sub-path` and is not included in the 
+bundled output. 
 
 ## Synergies
 If you are working on ES Modules / modern Javascript and document your code with JSDoc a great optional Rollup plugin 
