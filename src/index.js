@@ -1,4 +1,4 @@
-import path                   from 'path';
+import path                   from 'node:path';
 
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import globToRegExp           from 'glob-to-regexp';
@@ -109,6 +109,9 @@ export function importsExternal(options)
          {
             for (const [key, value] of Object.entries(packageObj.imports))
             {
+               // Skip all local path mappings for imports as the goal is to map packages as external.
+               if (value.startsWith('.')) { continue; }
+
                regexImportKeys.push(globToRegExp(key));
                regexImportValues.push(globToRegExp(value));
             }
