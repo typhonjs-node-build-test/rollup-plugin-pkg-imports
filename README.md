@@ -5,7 +5,7 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://discord.gg/mnbgN8f)
 
 Provides two Rollup plugins that resolve import specifiers defined in `package.json` 
-[imports](https://nodejs.org/api/packages.html#imports).
+[imports](https://nodejs.org/api/packages.html#imports) that link other NPM packages.
 
 - `importsResolve` - Resolves NPM package paths to the associated import specifier.
 
@@ -15,7 +15,7 @@ adding a regular expression to the Rollup [external](https://rollupjs.org/config
 configuration.
 
 ## Overview
-These plugins are useful for library authors for a variety of use cases. `importsExternal` in particular is helpful 
+These plugins are useful for library authors and general developers for a variety of use cases. `importsExternal` in particular is helpful 
 when developing packages that have peer dependencies that are not directly bundled into the library package or 
 dependencies between sub-path exports. Both plugins are similar to `@rollup/plugin-node-resolve` and function as a 
 resolution source to resolve internal [imports](https://nodejs.org/api/packages.html#imports) from `package.json`. 
