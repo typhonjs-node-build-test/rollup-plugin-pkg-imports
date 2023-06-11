@@ -22,7 +22,7 @@ export function importsExternal(options)
    let regexImportValues;
 
    return {
-      name: '@typhonjs-build-test/rollup-plugin-imports/importsExternal',
+      name: '@typhonjs-build-test/rollup-plugin-pkg-imports/importsExternal',
 
       // Store the options so that `@typhonjs-build-test/esm-d-ts can also automatically configure `importsExternal`.
       importsPluginOptions: options,
@@ -104,7 +104,7 @@ export function importsResolve(options)
    let regexImportKeys;
 
    return {
-      name: '@typhonjs-build-test/rollup-plugin-imports/importsResolve',
+      name: '@typhonjs-build-test/rollup-plugin-pkg-imports/importsResolve',
 
       // Store the options so that `@typhonjs-build-test/esm-d-ts can also automatically configure `importsResolve`.
       importsPluginOptions: options,
