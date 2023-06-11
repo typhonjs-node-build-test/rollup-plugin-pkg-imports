@@ -132,4 +132,4 @@ The Rollup plugin for `esm-d-ts` automatically creates bundled TS declarations f
 
 ## Roadmap / TODO
 - Evaluate any concerns for mono-repo use cases.
-- Create a comprehensive testsuite; rest assured though as this plugin is used in production environments. 
+- Create a comprehensive testsuite; rest assured though as these plugins are used in production environments. 
