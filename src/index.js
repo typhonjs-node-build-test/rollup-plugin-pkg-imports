@@ -40,7 +40,7 @@ export function importsExternal(options)
        */
       options(rollupOptions)
       {
-         ({ packageObj, regexImportKeys, regexImportValues} = processOptions(options, rollupOptions,
+         ({ packageObj, regexImportKeys, regexImportValues } = processOptions(options, rollupOptions,
           'importsExternal'));
 
          // Process `external` ---------------------------------------------------------------------------------------
@@ -102,7 +102,6 @@ export function importsResolve(options)
 
    let packageObj;
    let regexImportKeys;
-   let regexImportValues;
 
    return {
       name: '@typhonjs-build-test/rollup-plugin-imports/importsResolve',
@@ -121,8 +120,7 @@ export function importsResolve(options)
        */
       options(rollupOptions)
       {
-         ({ packageObj, regexImportKeys, regexImportValues} = processOptions(options, rollupOptions,
-          'importsResolve'));
+         ({ packageObj, regexImportKeys } = processOptions(options, rollupOptions, 'importsResolve'));
 
          return rollupOptions;
       },
@@ -160,7 +158,7 @@ export function importsResolve(options)
  *
  * @param {string}   name - plugin name.
  *
- * @returns {{ regexImportKeys: RegExp[], regexImportValues: RegExp[], packageObj: Object }} Processed data.
+ * @returns {{ regexImportKeys: RegExp[], regexImportValues: RegExp[], packageObj: object }} Processed data.
  */
 function processOptions(options, rollupOptions, name)
 {
@@ -208,7 +206,7 @@ function processOptions(options, rollupOptions, name)
    // Only explicit keys provided in `options`.
    if (options?.importKeys)
    {
-      for (const key of options?.importKeys)
+      for (const key of options.importKeys)
       {
          if (typeof packageObj.imports[key] !== 'string')
          {
