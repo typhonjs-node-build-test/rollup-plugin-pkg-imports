@@ -1,48 +1,31 @@
 import path                   from 'node:path';
+import { fileURLToPath }      from 'node:url';
 
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import globToRegExp           from 'glob-to-regexp';
+import { resolve }            from 'import-meta-resolve';
 import * as r                 from 'resolve.exports';
 
 /**
- * @param {ImportsExternalOptions}   [options] - Options.
+ * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages as external.
+ *
+ * @param {ImportsPluginOptions}   [options] - Options.
  *
  * @returns {import('rollup').Plugin} Rollup plugin.
  */
 export function importsExternal(options)
 {
-   if (options !== void 0 && typeof options !== 'object') { throw new TypeError(`'options' is not an object.`); }
+   validateOptions(options, 'importsExternal');
 
-   if (options?.importKeys !== void 0 && !Array.isArray(options?.importKeys))
-   {
-      throw new TypeError(`importsExternal error: 'options.importKeys' is not an array.`);
-   }
-
-   if (options?.packageObj !== void 0)
-   {
-      if (typeof options?.packageObj !== 'object')
-      {
-         throw new TypeError(
-          `importsExternal error: Provided target 'options.packageObj' is not an object.`);
-      }
-
-      if (typeof options?.packageObj.imports !== 'object')
-      {
-         throw new TypeError(
-          `importsExternal error: Provided target 'options.packageObj' does not have an 'imports' attribute.`);
-      }
-   }
-
-   let packageObj = options?.packageObj;
-
-   const regexImportKeys = [];
-   const regexImportValues = [];
+   let packageObj;
+   let regexImportKeys;
+   let regexImportValues;
 
    return {
-      name: '@typhonjs-build-test/rollup-external-imports',
+      name: '@typhonjs-build-test/rollup-plugin-imports/importsExternal',
 
       // Store the options so that `@typhonjs-build-test/esm-d-ts can also automatically configure `importsExternal`.
-      importsExternalOptions: options,
+      importsPluginOptions: options,
 
       /**
        * Create or add to the Rollup `external` option.
@@ -57,65 +40,8 @@ export function importsExternal(options)
        */
       options(rollupOptions)
       {
-         if (typeof rollupOptions.input !== 'string')
-         {
-            throw new TypeError(
-             `importsExternal error: only a single entry point is supported; Rollup 'input' option not a string.`);
-         }
-
-         // If not already defined load the nearest `package.json` from the `input` Rollup option. -------------------
-
-         if (packageObj === void 0)
-         {
-            const { packageObj: loadedObj, filepath } = getPackageWithPath({
-               filepath: path.resolve(rollupOptions.input)
-            });
-
-            packageObj = loadedObj;
-
-            if (typeof packageObj !== 'object')
-            {
-               throw new TypeError(
-                `importsExternal error: Could not resolve closest 'package.json' from Rollup options 'input': ${
-                 rollupOptions.input}.`);
-            }
-
-            if (typeof packageObj.imports !== 'object')
-            {
-               throw new TypeError(
-                `importsExternal error: The loaded 'package.json' does not contain an 'imports' attribute; filepath\n${
-                 filepath}.`);
-            }
-         }
-
-         // Create `imports` entry regexes ---------------------------------------------------------------------------
-
-         // Only explicit keys provided in `options`.
-         if (options?.importKeys)
-         {
-            for (const key of options.importKeys)
-            {
-               if (typeof packageObj.imports[key] !== 'string')
-               {
-                  throw new Error(
-                   `importsExternal error: Could not find match in target 'package.json' for import key: ${key}`);
-               }
-
-               regexImportKeys.push(globToRegExp(key));
-               regexImportValues.push(globToRegExp(packageObj.imports[key]));
-            }
-         }
-         else // Process all `imports` entries.
-         {
-            for (const [key, value] of Object.entries(packageObj.imports))
-            {
-               // Skip all local path mappings for imports as the goal is to map packages as external.
-               if (value.startsWith('.')) { continue; }
-
-               regexImportKeys.push(globToRegExp(key));
-               regexImportValues.push(globToRegExp(value));
-            }
-         }
+         ({ packageObj, regexImportKeys, regexImportValues} = processOptions(options, rollupOptions,
+          'importsExternal'));
 
          // Process `external` ---------------------------------------------------------------------------------------
 
@@ -164,13 +90,158 @@ export function importsExternal(options)
 }
 
 /**
+ * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages.
+ *
+ * @param {ImportsPluginOptions}   [options] - Options.
+ *
+ * @returns {import('rollup').Plugin} Rollup plugin.
+ */
+export function importsResolve(options)
+{
+   validateOptions(options, 'importsResolve');
+
+   let packageObj;
+   let regexImportKeys;
+   let regexImportValues;
+
+   return {
+      name: '@typhonjs-build-test/rollup-plugin-imports/importsResolve',
+
+      // Store the options so that `@typhonjs-build-test/esm-d-ts can also automatically configure `importsResolve`.
+      importsPluginOptions: options,
+
+      /**
+       * Processes options.
+       *
+       * @this {import('rollup').PluginContext}
+       *
+       * @param {import('rollup').InputOptions} rollupOptions - Rollup input options.
+       *
+       * @returns {import('rollup').InputOptions | import('rollup').NullValue} Rollup options.
+       */
+      options(rollupOptions)
+      {
+         ({ packageObj, regexImportKeys, regexImportValues} = processOptions(options, rollupOptions,
+          'importsResolve'));
+
+         return rollupOptions;
+      },
+
+      /**
+       * Based on the configured `imports` from the target `package.json` substitute any imported identifiers with a
+       * lookup against the glob defined in the `imports` object.
+       *
+       * @param {string} source - The import source to resolve.
+       *
+       * @returns {string} Resolved import source.
+       * @see https://rollupjs.org/plugin-development/#resolveid
+       */
+      async resolveId(source)
+      {
+         let foundMatch = false;
+         for (const regex of regexImportKeys)
+         {
+            if (regex.test(source))
+            {
+               foundMatch = true;
+               break;
+            }
+         }
+
+         return foundMatch ? await resolveImportPath(source, packageObj) : null;
+      }
+   };
+}
+
+/**
+ * @param {ImportsPluginOptions} options - Imports plugin options.
+ *
+ * @param {import('rollup').InputOptions} rollupOptions - Rollup input options.
+ *
+ * @param {string}   name - plugin name.
+ *
+ * @returns {{ regexImportKeys: RegExp[], regexImportValues: RegExp[], packageObj: Object }} Processed data.
+ */
+function processOptions(options, rollupOptions, name)
+{
+   let packageObj = options?.packageObj;
+   const regexImportKeys = [];
+   const regexImportValues = [];
+
+   if (typeof rollupOptions.input !== 'string')
+   {
+      throw new TypeError(`${name} error: Only a single entry point is supported; Rollup 'input' option not a string.`);
+   }
+
+   if (packageObj !== void 0 && typeof packageObj !== 'object' && typeof packageObj.imports !== 'object')
+   {
+      throw new TypeError(`${name} error: Provided 'package.json' in options does not contain an 'imports' attribute.`);
+   }
+
+   // If not already defined load the nearest `package.json` from the `input` Rollup option. -------------------
+
+   if (packageObj === void 0)
+   {
+      const { packageObj: loadedObj, filepath } = getPackageWithPath({
+         filepath: path.resolve(rollupOptions.input)
+      });
+
+      packageObj = loadedObj;
+
+      if (typeof packageObj !== 'object')
+      {
+         throw new TypeError(
+          `${name} error: Could not resolve closest 'package.json' from Rollup options 'input': ${
+           rollupOptions.input}.`);
+      }
+
+      if (typeof packageObj.imports !== 'object')
+      {
+         throw new TypeError(
+          `${name} error: The loaded 'package.json' does not contain an 'imports' attribute; filepath\n${
+           filepath}.`);
+      }
+   }
+
+   // Create `imports` entry regexes ---------------------------------------------------------------------------
+
+   // Only explicit keys provided in `options`.
+   if (options?.importKeys)
+   {
+      for (const key of options?.importKeys)
+      {
+         if (typeof packageObj.imports[key] !== 'string')
+         {
+            throw new Error(`${name} error: Could not find match in target 'package.json' for import key: ${key}`);
+         }
+
+         regexImportKeys.push(globToRegExp(key));
+         regexImportValues.push(globToRegExp(packageObj.imports[key]));
+      }
+   }
+   else // Process all `imports` entries.
+   {
+      for (const [key, value] of Object.entries(packageObj.imports))
+      {
+         // Skip all local path mappings for imports as the goal is to map packages as external.
+         if (value.startsWith('.')) { continue; }
+
+         regexImportKeys.push(globToRegExp(key));
+         regexImportValues.push(globToRegExp(value));
+      }
+   }
+
+   return { packageObj, regexImportKeys, regexImportValues };
+}
+
+/**
  * Resolves an imported `source` to the `imports` of the target `package.json` via `resolve.exports`.
  *
  * @param {string}   source - Target resolveId source to replace from matched `imports` in `package.json`.
  *
  * @param {object}   packageObj - Target `package.json` object.
  *
- * @returns {string | null}   Resolved import.
+ * @returns {string | null}   Resolved import value.
  */
 function resolveImportId(source, packageObj)
 {
@@ -179,22 +250,103 @@ function resolveImportId(source, packageObj)
    try
    {
       const importPackage = r.imports(packageObj, source)?.[0];
-      if (!importPackage) { return null; }
+      if (!importPackage)
+      {
+         console.warn(
+          `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${source}'.`);
+         return null;
+      }
+
       result = importPackage;
    }
    catch (err)
    {
-      console.error(err);
+      console.warn('@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier.');
+      throw err;
    }
 
    return result;
 }
 
 /**
- * @typedef {object} ImportsExternalOptions
+ * Resolves an imported `source` to the `imports` of the target `package.json` via `import-meta-resolve`.
+ *
+ * @param {string}   source - Target resolveId source to replace from matched `imports` in `package.json`.
+ *
+ * @param {object}   packageObj - Target `package.json` object.
+ *
+ * @returns {string | null}   Resolved import path.
+ */
+async function resolveImportPath(source, packageObj)
+{
+   let result = null;
+
+   let importPackage;
+
+   try
+   {
+      importPackage = r.imports(packageObj, source)?.[0];
+      if (!importPackage)
+      {
+         console.warn(
+          `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${source}'.`);
+         return null;
+      }
+   }
+   catch (err)
+   {
+      console.warn('@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier.');
+      throw err;
+   }
+
+   try
+   {
+      // Resolves full path to package / subpath export.
+      result = fileURLToPath(resolve(importPackage, import.meta.url));
+   }
+   catch (err)
+   {
+      console.warn(`@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to resolve '${
+       importPackage}' from import specifier '${source}'.`);
+   }
+
+   return result;
+}
+
+/**
+ * @param {ImportsPluginOptions} options - Import plugin options.
+ *
+ * @param {string}   name - name of plugin.
+ */
+function validateOptions(options, name)
+{
+   if (options !== void 0 && typeof options !== 'object') { throw new TypeError(`'options' is not an object.`); }
+
+   if (options?.importKeys !== void 0 && !Array.isArray(options?.importKeys))
+   {
+      throw new TypeError(`${name} error: 'options.importKeys' is not an array.`);
+   }
+
+   if (options?.packageObj !== void 0)
+   {
+      if (typeof options?.packageObj !== 'object')
+      {
+         throw new TypeError(`${name} error: Provided target 'options.packageObj' is not an object.`);
+      }
+
+      if (typeof options?.packageObj.imports !== 'object')
+      {
+         throw new TypeError(
+          `${name} error: Provided target 'options.packageObj' does not have an 'imports' attribute.`);
+      }
+   }
+}
+
+/**
+ * @typedef {object} ImportsPluginOptions
  *
  * @property {string[]} [importKeys] - Defines the `imports` keys in `package.json` to target. If undefined all
- *        `imports` entries are processed as external.
+ *        `imports` entries that are packages are processed.
  *
  * @property {object}   [packageObj] - An explicit target `package.json` object.
  */

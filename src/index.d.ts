@@ -1,15 +1,25 @@
 import * as rollup from 'rollup';
 
 /**
- * @param {ImportsExternalOptions}   [options] - Options.
+ * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages as external.
+ *
+ * @param {ImportsPluginOptions}   [options] - Options.
  *
  * @returns {import('rollup').Plugin} Rollup plugin.
  */
-declare function importsExternal(options?: ImportsExternalOptions): rollup.Plugin;
-type ImportsExternalOptions = {
+declare function importsExternal(options?: ImportsPluginOptions): rollup.Plugin;
+/**
+ * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages.
+ *
+ * @param {ImportsPluginOptions}   [options] - Options.
+ *
+ * @returns {import('rollup').Plugin} Rollup plugin.
+ */
+declare function importsResolve(options?: ImportsPluginOptions): rollup.Plugin;
+type ImportsPluginOptions = {
     /**
      * - Defines the `imports` keys in `package.json` to target. If undefined all
-     * `imports` entries are processed as external.
+     * `imports` entries that are packages are processed.
      */
     importKeys?: string[];
     /**
@@ -18,4 +28,4 @@ type ImportsExternalOptions = {
     packageObj?: object;
 };
 
-export { ImportsExternalOptions, importsExternal };
+export { ImportsPluginOptions, importsExternal, importsResolve };
