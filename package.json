@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/rollup-plugin-pkg-imports",
   "description": "Provides Rollup plugins that resolve import specifiers defined in `package.json` that link other NPM packages.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "contributors": [
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
@@ -27,7 +27,7 @@
     "eslint": "^8.53.0"
   },
   "peerDependencies": {
-    "rollup": "^4"
+    "rollup": "3.3 - 4"
   },
   "engines": {
     "node": ">=18.0"
