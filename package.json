@@ -23,6 +23,7 @@
     "resolve.exports": "^2.0.2"
   },
   "devDependencies": {
+    "@typhonjs-build-test/esm-d-ts": "^0.1.1",
     "@typhonjs-config/eslint-config": "^0.6.3",
     "eslint": "^8.53.0"
   },
