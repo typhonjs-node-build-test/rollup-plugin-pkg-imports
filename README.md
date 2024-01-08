@@ -1,8 +1,11 @@
-# @typhonjs-build-test/rollup-plugin-pkg-imports
+![@typhonjs-build-test/rollup-plugin-pkg-imports](https://i.imgur.com/b4q7JaV.jpg)
+
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/rollup-plugin-pkg-imports.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/rollup-plugin-pkg-imports)
 [![Code Style](https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat)](https://en.wikipedia.org/wiki/Indent_style#Allman_style)
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/rollup-plugin-pkg-imports/blob/main/LICENSE)
-[![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://discord.gg/mnbgN8f)
+[![API Docs](https://img.shields.io/badge/API%20Documentation-476ff0)](https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/)
+[![Discord](https://img.shields.io/discord/737953117999726592?label=TyphonJS%20Discord)](https://typhonjs.io/discord/)
+[![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
 Provides two Rollup plugins that resolve import specifiers defined in `package.json` 
 [imports](https://nodejs.org/api/packages.html#imports) that link other NPM packages.
@@ -13,6 +16,8 @@ Provides two Rollup plugins that resolve import specifiers defined in `package.j
 - `importsExternal` - Resolves NPM packages from import specifiers substituting the fully qualified name in addition to 
 adding a regular expression to the Rollup [external](https://rollupjs.org/configuration-options/#external) 
 configuration.
+
+[API documentation](https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/)
 
 ## Overview
 These plugins are useful for library authors and general developers for a variety of use cases. `importsExternal` in particular is helpful 
