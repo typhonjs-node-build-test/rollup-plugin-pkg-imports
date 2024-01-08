@@ -1,4 +1,5 @@
 /.dts
+/docs
 /dist
 /test/fixture
 /test/public
