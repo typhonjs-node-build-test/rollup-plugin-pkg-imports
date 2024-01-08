@@ -3,13 +3,13 @@ import { fileURLToPath }      from 'node:url';
 
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import globToRegExp           from 'glob-to-regexp';
-import { resolve }            from 'import-meta-resolve';
+import { moduleResolve }      from 'import-meta-resolve';
 import * as r                 from 'resolve.exports';
 
 /**
  * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages as external.
  *
- * @param {ImportsPluginOptions}   [options] - Options.
+ * @param {import('./types').ImportsPluginOptions}   [options] - Options.
  *
  * @returns {import('rollup').Plugin} Rollup plugin.
  */
@@ -92,7 +92,7 @@ export function importsExternal(options)
 /**
  * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages.
  *
- * @param {ImportsPluginOptions}   [options] - Options.
+ * @param {import('./types').ImportsResolvePluginOptions}   [options] - Options.
  *
  * @returns {import('rollup').Plugin} Rollup plugin.
  */
@@ -146,13 +146,13 @@ export function importsResolve(options)
             }
          }
 
-         return foundMatch ? await resolveImportPath(source, packageObj) : null;
+         return foundMatch ? await resolveImportPath(source, packageObj, options.exportConditions) : null;
       }
    };
 }
 
 /**
- * @param {ImportsPluginOptions} options - Imports plugin options.
+ * @param {import('./types').ImportsPluginOptions} options - Imports plugin options.
  *
  * @param {import('rollup').InputOptions} rollupOptions - Rollup input options.
  *
@@ -273,9 +273,11 @@ function resolveImportId(source, packageObj)
  *
  * @param {object}   packageObj - Target `package.json` object.
  *
+ * @param {string}   [exportConditions] - Export conditions to resolve.
+ *
  * @returns {string | null}   Resolved import path.
  */
-async function resolveImportPath(source, packageObj)
+async function resolveImportPath(source, packageObj, exportConditions)
 {
    let result = null;
 
@@ -300,7 +302,8 @@ async function resolveImportPath(source, packageObj)
    try
    {
       // Resolves full path to package / subpath export.
-      result = fileURLToPath(resolve(importPackage, import.meta.url));
+      result = fileURLToPath(moduleResolve(importPackage, import.meta.url,
+       exportConditions ? new Set(exportConditions) : new Set(['node', 'default'])));
    }
    catch (err)
    {
@@ -312,7 +315,8 @@ async function resolveImportPath(source, packageObj)
 }
 
 /**
- * @param {ImportsPluginOptions} options - Import plugin options.
+ * @param {import('./types').ImportsPluginOptions | import('./types').ImportsResolvePluginOptions} options - Import
+ *        plugin options.
  *
  * @param {string}   name - name of plugin.
  */
@@ -338,13 +342,9 @@ function validateOptions(options, name)
           `${name} error: Provided target 'options.packageObj' does not have an 'imports' attribute.`);
       }
    }
-}
 
-/**
- * @typedef {object} ImportsPluginOptions
- *
- * @property {string[]} [importKeys] - Defines the `imports` keys in `package.json` to target. If undefined all
- *        `imports` entries that are packages are processed.
- *
- * @property {object}   [packageObj] - An explicit target `package.json` object.
- */
+   if (options?.exportConditions !== void 0 && !Array.isArray(options.exportConditions))
+   {
+      throw new TypeError(`${name} error: Provided target 'options.exportConditions' is not an array.`);
+   }
+}
