@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/rollup-plugin-pkg-imports",
   "description": "Provides Rollup plugins that resolve import specifiers defined in `package.json` that link other NPM packages.",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "contributors": [
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
@@ -46,10 +46,18 @@
     "rollup",
     "plugin"
   ],
+  "typedocOptions": {
+    "dmtLinksService": {
+      "Discord": "https://typhonjs.io/discord/",
+      "GitHub": "https://github.com/typhonjs-node-build-test/rollup-plugin-pkg-imports",
+      "NPM": "https://www.npmjs.com/package/@typhonjs-build-test/rollup-plugin-pkg-imports"
+    }
+  },
   "license": "MPL-2.0",
   "repository": "github:typhonjs-node-build-test/rollup-plugin-pkg-imports",
   "bugs": "https://github.com/typhonjs-node-build-test/rollup-plugin-pkg-imports/issues",
   "scripts": {
+    "docs": "typedoc-pkg --api-link esm",
     "eslint": "eslint .",
     "prepublishOnly": "npm run types",
     "types": "esm-d-ts gen src/index.js"
