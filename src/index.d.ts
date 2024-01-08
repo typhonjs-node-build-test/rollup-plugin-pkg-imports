@@ -28,4 +28,4 @@ type ImportsPluginOptions = {
     packageObj?: object;
 };
 
-export { ImportsPluginOptions, importsExternal, importsResolve };
+export { type ImportsPluginOptions, importsExternal, importsResolve };
