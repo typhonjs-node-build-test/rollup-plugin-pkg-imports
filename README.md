@@ -10,12 +10,10 @@
 Provides two Rollup plugins that resolve import specifiers defined in `package.json` 
 [imports](https://nodejs.org/api/packages.html#imports) that link other NPM packages.
 
+- `importsExternal` - Resolves NPM packages from import specifiers substituting the fully qualified name in addition to
+  adding a regular expression to the Rollup [external](https://rollupjs.org/configuration-options/#external) configuration.
+
 - `importsResolve` - Resolves NPM package paths to the associated import specifier.
-
-
-- `importsExternal` - Resolves NPM packages from import specifiers substituting the fully qualified name in addition to 
-adding a regular expression to the Rollup [external](https://rollupjs.org/configuration-options/#external) 
-configuration.
 
 [API documentation](https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/)
 
@@ -123,6 +121,9 @@ name: `import { thing } from '@my-org-name/a-long-package-name/thing';`.
 Essentially, `importsResolve` is a convenience mechanism when using Rollup to automatically resolve import specifiers. 
 The referenced packages are included in the bundle generated without having to manually configure 
 `@rollup/plugin-replace` or `@rollup/plugin-alias`.
+
+Additionally, you may provide a string array `exportConditions` in the plugin options to resolve specific export 
+conditions. The default is `['node', 'import']`.  
 
 For instance if you are using `Vite 4.2+` import specifiers are automatically resolved in production / Rollup builds. 
 This plugin functions in a similar manner, but handy for direct Rollup builds.   
