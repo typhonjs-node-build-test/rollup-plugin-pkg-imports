@@ -4,3 +4,4 @@
 /test/fixture
 /test/public
 *.d.ts
+*.ts
