@@ -146,7 +146,7 @@ export function importsResolve(options)
             }
          }
 
-         return foundMatch ? await resolveImportPath(source, packageObj, options.exportConditions) : null;
+         return foundMatch ? await resolveImportPath(source, packageObj, options?.exportConditions) : null;
       }
    };
 }
@@ -303,7 +303,7 @@ async function resolveImportPath(source, packageObj, exportConditions)
    {
       // Resolves full path to package / subpath export.
       result = fileURLToPath(moduleResolve(importPackage, import.meta.url,
-       exportConditions ? new Set(exportConditions) : new Set(['node', 'default'])));
+       exportConditions ? new Set(exportConditions) : new Set(['node', 'import', 'default'])));
    }
    catch (err)
    {
