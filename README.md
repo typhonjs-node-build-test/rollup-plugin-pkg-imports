@@ -123,7 +123,7 @@ The referenced packages are included in the bundle generated without having to m
 `@rollup/plugin-replace` or `@rollup/plugin-alias`.
 
 Additionally, you may provide a string array `exportConditions` in the plugin options to resolve specific export 
-conditions. The default is `['node', 'import']`.  
+conditions. The default is `['node', 'import', 'default']`.  
 
 For instance if you are using `Vite 4.2+` import specifiers are automatically resolved in production / Rollup builds. 
 This plugin functions in a similar manner, but handy for direct Rollup builds.   
