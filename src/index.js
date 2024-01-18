@@ -203,29 +203,36 @@ function processOptions(options, rollupOptions, name)
 
    // Create `imports` entry regexes ---------------------------------------------------------------------------
 
-   // Only explicit keys provided in `options`.
-   if (options?.importKeys)
+   // Only explicit keys provided in `options` or all import keys.
+   const importKeys = options?.importKeys ? options.importKeys : Object.keys(packageObj.imports);
+
+   for (const key of importKeys)
    {
-      for (const key of options.importKeys)
+      if (packageObj.imports[key] === void 0)
       {
-         if (typeof packageObj.imports[key] !== 'string')
+         throw new Error(`${name} error: Could not find match in target 'package.json' for import key: ${key}`);
+      }
+
+      try
+      {
+         const importPackage = r.imports(packageObj, key)?.[0];
+         if (!importPackage)
          {
-            throw new Error(`${name} error: Could not find match in target 'package.json' for import key: ${key}`);
+            console.warn(
+             `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
          }
 
-         regexImportKeys.push(globToRegExp(key));
-         regexImportValues.push(globToRegExp(packageObj.imports[key]));
-      }
-   }
-   else // Process all `imports` entries.
-   {
-      for (const [key, value] of Object.entries(packageObj.imports))
-      {
          // Skip all local path mappings for imports as the goal is to map packages as external.
-         if (value.startsWith('.')) { continue; }
+         if (importPackage.startsWith('.')) { continue; }
 
          regexImportKeys.push(globToRegExp(key));
-         regexImportValues.push(globToRegExp(value));
+         regexImportValues.push(globToRegExp(importPackage));
+      }
+      catch (err)
+      {
+         console.warn(
+          `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+         throw err;
       }
    }
 
