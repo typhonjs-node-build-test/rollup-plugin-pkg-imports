@@ -10,8 +10,13 @@
 Provides two Rollup plugins that resolve import specifiers defined in `package.json` 
 [imports](https://nodejs.org/api/packages.html#imports) that link other NPM packages.
 
+- `importsLocal` - Resolves import specifiers as local packages w/ fully qualified sub-path exports. In this case
+import specifier should exactly match an actual local main package name / export.
+
+
 - `importsExternal` - Resolves NPM packages from import specifiers substituting the fully qualified name in addition to
   adding a regular expression to the Rollup [external](https://rollupjs.org/configuration-options/#external) configuration.
+
 
 - `importsResolve` - Resolves NPM package paths to the associated import specifier.
 
@@ -23,14 +28,46 @@ when developing packages that have peer dependencies that are not directly bundl
 dependencies between sub-path exports. Both plugins are similar to `@rollup/plugin-node-resolve` and function as a 
 resolution source to resolve internal [imports](https://nodejs.org/api/packages.html#imports) from `package.json`. 
 
-`importsExternal` in particular automatically constructs regular expressions added to the Rollup [external](https://rollupjs.org/configuration-options/#external) 
+`importsExternal` automatically constructs regular expressions added to the Rollup [external](https://rollupjs.org/configuration-options/#external) 
 configuration array in addition to resolving against the value provided for each activated `imports` entry. You may use 
 globs in defining the `imports` entries allowing targeting of external peer dependency packages that have sub-path 
 exports.
 
-By default, all `imports` entries that refer to a local path starting with `.` are ignored.
+`importsLocal` automatically constructs regular expressions added to the Rollup [external](https://rollupjs.org/configuration-options/#external)
+configuration array for all values that have a local path starting with `./`. 
+
+By default, for `importsExternal` and `importsResolve` all `imports` entries that refer to a local path starting 
+with `./` are ignored. `importsLocal` will register keys that have values that start with `./` signifying a local
+path. 
+
+You may use `importsExternal` and `importsResolve` together, but usage of `importsLocal` should be exclusive and 
+not paired with the former plugins without careful consideration as they serve different purposes. 
 
 ----
+## Examples `importsLocal`:
+
+### Example #1 `package.json` `imports` entry:
+
+```json
+{
+  "name": "my-package",
+  "imports": {
+    "#my-package": "./src/index.js",
+    "#my-package/sub": "./src/sub/index.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./sub": "/dist/sub/index.js"
+  }
+}
+```
+
+Above the main package `#my-package` refers to the source code of the main export and `#my-package/sub` refers to the
+source code of the sub-path export `my-package/sub`. When developing a local package split across independent sub-path
+exports you are able to reference the local packages with the import specifier and `importsLocal` will replace it
+by dropping the leading `#` character. When bundling each import specifier will be marked as external and not included
+in the respective bundles of the main or sub-path exports.
+
 ## Examples `importsExternal`:
 
 ### Example #1 `package.json` `imports` entry:
