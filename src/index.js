@@ -7,6 +7,91 @@ import { moduleResolve }      from 'import-meta-resolve';
 import * as r                 from 'resolve.exports';
 
 /**
+ * Provides a Rollup plugin that automatically resolves `package.json` import specifiers as the local package and
+ * sub-path exports. The import specifier must be the fully qualified local package name including the base package.
+ *
+ * @param {import('./types').ImportsPluginOptions}   [options] - Options.
+ *
+ * @returns {import('rollup').Plugin} Rollup plugin.
+ */
+export function importsLocal(options)
+{
+   validateOptions(options, 'importsLocal');
+
+   let regexImportLocalMap;
+
+   return {
+      name: '@typhonjs-build-test/rollup-plugin-pkg-imports/importsLocal',
+
+      // Store the options so that `@typhonjs-build-test/esm-d-ts can also automatically configure `importsLocal`.
+      importsPluginOptions: options,
+
+      /**
+       * Create or add to the Rollup `external` option.
+       *
+       * @this {import('rollup').PluginContext}
+       *
+       * @param {import('rollup').InputOptions} rollupOptions - Rollup input options.
+       *
+       * @returns {import('rollup').InputOptions | import('rollup').NullValue} Rollup options.
+       *
+       * @see https://rollupjs.org/configuration-options/#external
+       */
+      options(rollupOptions)
+      {
+         ({ regexImportLocalMap } = processOptions(options, rollupOptions, 'importsLocal'));
+
+         // Process `external` ---------------------------------------------------------------------------------------
+
+         const newExternal = [];
+
+         newExternal.push(...regexImportLocalMap.values());
+
+         if (Array.isArray(rollupOptions.external))   // Push all existing values to new externals.
+         {
+            newExternal.push(...rollupOptions.external);
+         }
+         else if (rollupOptions.external !== void 0)  // Handle the case for a single existing string or RegExp.
+         {
+            newExternal.push(rollupOptions.external);
+         }
+
+         rollupOptions.external = newExternal;
+
+         return rollupOptions;
+      },
+
+      /**
+       * Based on the configured `imports` from the target `package.json` substitute any imported identifiers with a
+       * lookup against the glob defined in the `imports` object. The import identifier is sliced to remove the leading
+       * `#` character.
+       *
+       * @param {string} source - The import source to resolve.
+       *
+       * @returns {string} Resolved import source.
+       * @see https://rollupjs.org/plugin-development/#resolveid
+       */
+      async resolveId(source)
+      {
+         let foundMatch = false;
+         let matchValue;
+
+         for (const regex of regexImportLocalMap.keys())
+         {
+            if (regex.test(source))
+            {
+               foundMatch = true;
+               matchValue = regexImportLocalMap.get(regex);
+               break;
+            }
+         }
+
+         return foundMatch ? matchValue : null;
+      }
+   };
+}
+
+/**
  * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages as external.
  *
  * @param {import('./types').ImportsPluginOptions}   [options] - Options.
@@ -158,11 +243,18 @@ export function importsResolve(options)
  *
  * @param {string}   name - plugin name.
  *
- * @returns {{ regexImportKeys: RegExp[], regexImportValues: RegExp[], packageObj: object }} Processed data.
+ * @returns {({
+ *    regexImportLocalMap: Map<RegExp, string>,
+ *    regexImportKeys: RegExp[],
+ *    regexImportValues: RegExp[],
+ *    packageObj: object
+ * })} Processed data.
  */
 function processOptions(options, rollupOptions, name)
 {
    let packageObj = options?.packageObj;
+
+   const regexImportLocalMap = new Map();
    const regexImportKeys = [];
    const regexImportValues = [];
 
@@ -213,30 +305,50 @@ function processOptions(options, rollupOptions, name)
          throw new Error(`${name} error: Could not find match in target 'package.json' for import key: ${key}`);
       }
 
-      try
+      switch (name)
       {
-         const importPackage = r.imports(packageObj, key)?.[0];
-         if (!importPackage)
+         case 'importsLocal':
          {
-            console.warn(
-             `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+            const importValue = packageObj.imports[key];
+            if (typeof importValue === 'string' && importValue.startsWith(`.`))
+            {
+               regexImportLocalMap.set(globToRegExp(key), key.slice(1));
+            }
+
+            break;
          }
 
-         // Skip all local path mappings for imports as the goal is to map packages as external.
-         if (importPackage.startsWith('.')) { continue; }
+         case 'importsExternal':
+         case 'importsResolve':
+         {
+            try
+            {
+               const importPackage = r.imports(packageObj, key)?.[0];
+               if (!importPackage)
+               {
+                  console.warn(
+                   `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+               }
 
-         regexImportKeys.push(globToRegExp(key));
-         regexImportValues.push(globToRegExp(importPackage));
-      }
-      catch (err)
-      {
-         console.warn(
-          `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
-         throw err;
+               // Skip all local path mappings for imports as the goal is to map packages as external.
+               if (importPackage.startsWith('.')) { continue; }
+
+               regexImportKeys.push(globToRegExp(key));
+               regexImportValues.push(globToRegExp(importPackage));
+            }
+            catch (err)
+            {
+               console.warn(
+                `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+               throw err;
+            }
+
+            break;
+         }
       }
    }
 
-   return { packageObj, regexImportKeys, regexImportValues };
+   return { packageObj, regexImportLocalMap, regexImportKeys, regexImportValues };
 }
 
 /**

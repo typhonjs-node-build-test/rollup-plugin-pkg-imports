@@ -19,6 +19,15 @@ type ImportsResolvePluginOptions = {
 } & ImportsPluginOptions;
 
 /**
+ * Provides a Rollup plugin that automatically resolves `package.json` import specifiers as the local package and
+ * sub-path exports. The import specifier must be the fully qualified local package name including the base package.
+ *
+ * @param {import('./types').ImportsPluginOptions}   [options] - Options.
+ *
+ * @returns {import('rollup').Plugin} Rollup plugin.
+ */
+declare function importsLocal(options?: ImportsPluginOptions): rollup.Plugin;
+/**
  * Provides a Rollup plugin that automatically resolves `package.json` import specifiers to NPM packages as external.
  *
  * @param {import('./types').ImportsPluginOptions}   [options] - Options.
@@ -35,4 +44,4 @@ declare function importsExternal(options?: ImportsPluginOptions): rollup.Plugin;
  */
 declare function importsResolve(options?: ImportsResolvePluginOptions): rollup.Plugin;
 
-export { type ImportsPluginOptions, type ImportsResolvePluginOptions, importsExternal, importsResolve };
+export { type ImportsPluginOptions, type ImportsResolvePluginOptions, importsExternal, importsLocal, importsResolve };
