@@ -7,7 +7,7 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=TyphonJS%20Discord)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-Provides two Rollup plugins that resolve import specifiers defined in `package.json` 
+Provides three Rollup plugins that resolve import specifiers defined in `package.json` 
 [imports](https://nodejs.org/api/packages.html#imports) that link other NPM packages.
 
 - `importsLocal` - Resolves import specifiers as local packages w/ fully qualified sub-path exports. In this case
@@ -25,7 +25,7 @@ import specifier should exactly match an actual local main package name / export
 ## Overview
 These plugins are useful for library authors and general developers for a variety of use cases. `importsExternal` in particular is helpful 
 when developing packages that have peer dependencies that are not directly bundled into the library package or 
-dependencies between sub-path exports. Both plugins are similar to `@rollup/plugin-node-resolve` and function as a 
+dependencies between sub-path exports. The plugins are similar to `@rollup/plugin-node-resolve` and function as a 
 resolution source to resolve internal [imports](https://nodejs.org/api/packages.html#imports) from `package.json`. 
 
 `importsExternal` automatically constructs regular expressions added to the Rollup [external](https://rollupjs.org/configuration-options/#external) 
@@ -34,7 +34,9 @@ globs in defining the `imports` entries allowing targeting of external peer depe
 exports.
 
 `importsLocal` automatically constructs regular expressions added to the Rollup [external](https://rollupjs.org/configuration-options/#external)
-configuration array for all values that have a local path starting with `./`. 
+configuration array for all values that have a local path starting with `./`. Any usage of the `imports` entries will be
+resolved dropping the leading `#` and should match the actual exports of the package. `importsLocal` works best for 
+Typescript oriented packages in terms of generating types.  
 
 By default, for `importsExternal` and `importsResolve` all `imports` entries that refer to a local path starting 
 with `./` are ignored. `importsLocal` will register keys that have values that start with `./` signifying a local
@@ -52,12 +54,18 @@ not paired with the former plugins without careful consideration as they serve d
 {
   "name": "my-package",
   "imports": {
-    "#my-package": "./src/index.js",
-    "#my-package/sub": "./src/sub/index.js"
+    "#my-package": "./src/index.ts",
+    "#my-package/sub": "./src/sub/index.ts"
   },
   "exports": {
-    ".": "./dist/index.js",
-    "./sub": "/dist/sub/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sub": {
+      "types": "/dist/sub/index.d.ts",
+      "import": "/dist/sub/index.js"
+    }
   }
 }
 ```
