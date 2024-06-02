@@ -1,5 +1,8 @@
 # Changelog
 ## 0.4.0 release
+- Hardened `imports` lookup. Added more documentation for `importsLocal`.
+
+## 0.4.0 release
 - Added `importsLocal` for working with local mapping of import specifiers to the local / sub-path exports.
 
 ## 0.3.0 release
