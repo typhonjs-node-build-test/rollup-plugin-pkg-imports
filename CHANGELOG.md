@@ -1,5 +1,5 @@
 # Changelog
-## 0.4.0 release
+## 0.5.0 release
 - Hardened `imports` lookup. Added more documentation for `importsLocal`.
 
 ## 0.4.0 release
