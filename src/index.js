@@ -309,8 +309,15 @@ function processOptions(options, rollupOptions, name)
       {
          case 'importsLocal':
          {
-            const importValue = packageObj.imports[key];
-            if (typeof importValue === 'string' && importValue.startsWith(`.`))
+            const importPackage = r.imports(packageObj, key)?.[0];
+            if (!importPackage)
+            {
+               console.warn(
+                `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+               continue;
+            }
+
+            if (importPackage?.startsWith(`.`))
             {
                regexImportLocalMap.set(globToRegExp(key), key.slice(1));
             }
@@ -328,10 +335,11 @@ function processOptions(options, rollupOptions, name)
                {
                   console.warn(
                    `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+                  continue;
                }
 
                // Skip all local path mappings for imports as the goal is to map packages as external.
-               if (importPackage.startsWith('.')) { continue; }
+               if (importPackage?.startsWith('.')) { continue; }
 
                regexImportKeys.push(globToRegExp(key));
                regexImportValues.push(globToRegExp(importPackage));
