@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/rollup-plugin-pkg-imports",
   "description": "Provides Rollup plugins that resolve import specifiers defined in `package.json` that link other NPM packages.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "contributors": [
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
@@ -16,14 +16,15 @@
   },
   "dependencies": {
     "@typhonjs-utils/package-json": "^0.7.0",
-    "glob-to-regexp": "^0.4.1",
+    "glob-to-regexp": "^0.4.0",
     "import-meta-resolve": "^4.0.0",
-    "resolve.exports": "^2.0.2"
+    "resolve.exports": "^2.0.0"
   },
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": ">=0.2.0",
+    "@typhonjs-build-test/esm-d-ts": ">=0.3.0-next.9",
     "@typhonjs-config/eslint-config": "^0.6.3",
-    "eslint": "^8.53.0"
+    "@typhonjs-typedoc/typedoc-pkg": "^0.3.1",
+    "eslint": "^8.57.0"
   },
   "peerDependencies": {
     "rollup": "3.3 - 4"
@@ -56,7 +57,7 @@
   "bugs": "https://github.com/typhonjs-node-build-test/rollup-plugin-pkg-imports/issues",
   "apidocs": "https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/",
   "scripts": {
-    "docs": "typedoc-pkg --api-link esm",
+    "docs": "typedoc-pkg --api-link es",
     "eslint": "eslint .",
     "prepublishOnly": "npm run types",
     "types": "esm-d-ts gen src/index.js"
