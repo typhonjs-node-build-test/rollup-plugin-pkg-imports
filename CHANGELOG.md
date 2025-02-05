@@ -1,4 +1,7 @@
 # Changelog
+## 0.6.0 release
+- Update dependencies.
+
 ## 0.5.0 release
 - Hardened `imports` lookup. Added more documentation for `importsLocal`.
 
