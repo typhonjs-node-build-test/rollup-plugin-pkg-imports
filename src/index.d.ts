@@ -1,21 +1,21 @@
 import * as rollup from 'rollup';
 
 type ImportsPluginOptions = {
-    /**
-     * Defines the `imports` keys in `package.json` to target. If undefined all `imports` entries that are packages
-     * are processed.
-     */
-    importKeys?: string[];
-    /**
-     * An explicit target `package.json` object.
-     */
-    packageObj?: object;
+  /**
+   * Defines the `imports` keys in `package.json` to target. If undefined all `imports` entries that are packages
+   * are processed.
+   */
+  importKeys?: string[];
+  /**
+   * An explicit target `package.json` object.
+   */
+  packageObj?: object;
 };
 type ImportsResolvePluginOptions = {
-    /**
-     * Specific export conditions to resolve.
-     */
-    exportConditions?: string[];
+  /**
+   * Specific export conditions to resolve.
+   */
+  exportConditions?: string[];
 } & ImportsPluginOptions;
 
 /**
