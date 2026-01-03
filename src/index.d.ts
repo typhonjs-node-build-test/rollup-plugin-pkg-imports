@@ -20,7 +20,7 @@ type ImportsResolvePluginOptions = {
 
 /**
  * Provides a Rollup plugin that automatically resolves `package.json` import specifiers as the local package and
- * sub-path exports. The import specifier must be the fully qualified local package name including the base package.
+ * sub-path exports. This is accomplished by substituting the package specified by a unique `replace` condition.
  *
  * @param {import('./types').ImportsPluginOptions}   [options] - Options.
  *
@@ -44,4 +44,5 @@ declare function importsExternal(options?: ImportsPluginOptions): rollup.Plugin;
  */
 declare function importsResolve(options?: ImportsResolvePluginOptions): rollup.Plugin;
 
-export { type ImportsPluginOptions, type ImportsResolvePluginOptions, importsExternal, importsLocal, importsResolve };
+export { importsExternal, importsLocal, importsResolve };
+export type { ImportsPluginOptions, ImportsResolvePluginOptions };
