@@ -10,12 +10,13 @@
 Provides three Rollup plugins that resolve import specifiers defined in `package.json` 
 [imports](https://nodejs.org/api/packages.html#imports) that link other NPM packages.
 
-- `importsLocal` - Resolves import specifiers as local packages w/ fully qualified sub-path exports. In this case
-import specifier should exactly match an actual local main package name / export.
+- `importsLocal` - Resolves import specifiers as local packages w/ fully qualified sub-path exports via a special 
+`replace` condition allowing referencing local source during development with fully qualified sub-path exports 
+substituted in the bundled build. 
 
 
 - `importsExternal` - Resolves NPM packages from import specifiers substituting the fully qualified name in addition to
-  adding a regular expression to the Rollup [external](https://rollupjs.org/configuration-options/#external) configuration.
+adding a regular expression to the Rollup [external](https://rollupjs.org/configuration-options/#external) configuration.
 
 
 - `importsResolve` - Resolves NPM package paths to the associated import specifier.
@@ -34,9 +35,10 @@ globs in defining the `imports` entries allowing targeting of external peer depe
 exports.
 
 `importsLocal` automatically constructs regular expressions added to the Rollup [external](https://rollupjs.org/configuration-options/#external)
-configuration array for all values that have a local path starting with `./`. Any usage of the `imports` entries will be
-resolved dropping the leading `#` and should match the actual exports of the package. `importsLocal` works best for 
-Typescript oriented packages in terms of generating types.  
+configuration array for all values that have a unique `replace` condition defined. The value of `replace` is the final
+resolved package / sub-path export. `importsLocal` works best for Typescript oriented packages in terms of generating 
+types and being able to reference the source of different sub-path exports during development, but the final bundled 
+build has the substituted local sub-path exports.  
 
 By default, for `importsExternal` and `importsResolve` all `imports` entries that refer to a local path starting 
 with `./` are ignored. `importsLocal` will register keys that have values that start with `./` signifying a local
@@ -52,10 +54,18 @@ not paired with the former plugins without careful consideration as they serve d
 
 ```json
 {
-  "name": "my-package",
+  "name": "@some-really-long-org-name/my-package",
   "imports": {
-    "#my-package": "./src/index.ts",
-    "#my-package/sub": "./src/sub/index.ts"
+    "#my-package": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "replace": "@some-really-long-org-name/my-package"
+    },
+    "#my-package/*": {
+      "types": "./src/*/index.ts",
+      "import": "./src/*/index.ts",
+      "replace": "@some-really-long-org-name/my-package/*"
+    }
   },
   "exports": {
     ".": {
@@ -65,16 +75,20 @@ not paired with the former plugins without careful consideration as they serve d
     "./sub": {
       "types": "/dist/sub/index.d.ts",
       "import": "/dist/sub/index.js"
+    },
+    "./sub/depth": {
+      "types": "/dist/sub/depth/index.d.ts",
+      "import": "/dist/sub/depth/index.js"
     }
   }
 }
 ```
 
-Above the main package `#my-package` refers to the source code of the main export and `#my-package/sub` refers to the
-source code of the sub-path export `my-package/sub`. When developing a local package split across independent sub-path
+Above the main package `#my-package` refers to the source code of the main export and `#my-package/*` refers to the
+source code of any wild card sub-path export. When developing a local package split across independent sub-path
 exports you are able to reference the local packages with the import specifier and `importsLocal` will replace it
-by dropping the leading `#` character. When bundling each import specifier will be marked as external and not included
-in the respective bundles of the main or sub-path exports.
+with the value of the `replace` condition. When bundling each import specifier will be marked as external and not 
+included in the respective bundles of the main or sub-path exports.
 
 ## Examples `importsExternal`:
 
