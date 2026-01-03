@@ -1,4 +1,11 @@
 # Changelog
+## 0.7.0 release (major / breaking)
+- Switched to new fork [@es-joy/resolve.exports](https://github.com/es-joy/resolve.exports) allowing an upgrade to 
+`importsLocal` to really work as intended. There was a limitation in the original 
+[resolve.exports](https://github.com/lukeed/resolve.exports/issues/30#issuecomment-3438020713) that prevented a cleaner
+implementation. The breaking change is that you now provide a special `replace` condition and that package value is
+replaced at build / bundling. 
+
 ## 0.6.0 release
 - Update dependencies.
 
