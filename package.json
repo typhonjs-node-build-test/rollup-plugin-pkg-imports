@@ -53,7 +53,10 @@
     }
   },
   "license": "MPL-2.0",
-  "repository": "github:typhonjs-node-build-test/rollup-plugin-pkg-imports",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/typhonjs-node-build-test/rollup-plugin-pkg-imports.git"
+  },
   "bugs": "https://github.com/typhonjs-node-build-test/rollup-plugin-pkg-imports/issues",
   "apidocs": "https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/",
   "scripts": {
