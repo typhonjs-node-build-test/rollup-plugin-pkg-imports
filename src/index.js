@@ -1,10 +1,17 @@
 import path                   from 'node:path';
 import { fileURLToPath }      from 'node:url';
 
+import * as r                 from '@es-joy/resolve.exports';
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import globToRegExp           from 'glob-to-regexp';
 import { moduleResolve }      from 'import-meta-resolve';
-import * as r                 from 'resolve.exports';
+
+/**
+ * Defines the custom `replace` condition as the target for `resolve.exports`; used by `importsLocal`.
+ *
+ * @type {string[]}
+ */
+const s_REPLACE_CONDITIONS = ['!default', '!import', '!node', '!browser', '!types', '!typings', '!require', 'replace'];
 
 /**
  * Provides a Rollup plugin that automatically resolves `package.json` import specifiers as the local package and
@@ -18,7 +25,9 @@ export function importsLocal(options)
 {
    validateOptions(options, 'importsLocal');
 
-   let regexImportLocalMap;
+   let packageObj;
+   let regexImportKeys;
+   let regexImportValues;
 
    return {
       name: '@typhonjs-build-test/rollup-plugin-pkg-imports/importsLocal',
@@ -39,13 +48,13 @@ export function importsLocal(options)
        */
       options(rollupOptions)
       {
-         ({ regexImportLocalMap } = processOptions(options, rollupOptions, 'importsLocal'));
+         ({ packageObj, regexImportKeys, regexImportValues } = processOptions(options, rollupOptions, 'importsLocal'));
 
          // Process `external` ---------------------------------------------------------------------------------------
 
          const newExternal = [];
 
-         newExternal.push(...regexImportLocalMap.values());
+         for (const regex of regexImportValues) { newExternal.push(regex); }
 
          if (Array.isArray(rollupOptions.external))   // Push all existing values to new externals.
          {
@@ -74,19 +83,16 @@ export function importsLocal(options)
       async resolveId(source)
       {
          let foundMatch = false;
-         let matchValue;
-
-         for (const regex of regexImportLocalMap.keys())
+         for (const regex of regexImportKeys)
          {
             if (regex.test(source))
             {
                foundMatch = true;
-               matchValue = regexImportLocalMap.get(regex);
                break;
             }
          }
 
-         return foundMatch ? matchValue : null;
+         return foundMatch ? resolveImportId(source, packageObj, true) : null;
       }
    };
 }
@@ -244,7 +250,6 @@ export function importsResolve(options)
  * @param {string}   name - plugin name.
  *
  * @returns {({
- *    regexImportLocalMap: Map<RegExp, string>,
  *    regexImportKeys: RegExp[],
  *    regexImportValues: RegExp[],
  *    packageObj: object
@@ -254,7 +259,6 @@ function processOptions(options, rollupOptions, name)
 {
    let packageObj = options?.packageObj;
 
-   const regexImportLocalMap = new Map();
    const regexImportKeys = [];
    const regexImportValues = [];
 
@@ -309,18 +313,20 @@ function processOptions(options, rollupOptions, name)
       {
          case 'importsLocal':
          {
-            const importPackage = r.imports(packageObj, key)?.[0];
+            const importPackage = r.imports(packageObj, key, { conditions: s_REPLACE_CONDITIONS })?.[0];
+
             if (!importPackage)
             {
-               console.warn(
-                `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
+               // console.warn(
+               //  `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
                continue;
             }
 
-            if (importPackage?.startsWith(`.`))
-            {
-               regexImportLocalMap.set(globToRegExp(key), key.slice(1));
-            }
+            // Skip all local path mappings for imports as the goal is to map packages as external.
+            if (importPackage?.startsWith('.')) { continue; }
+
+            regexImportKeys.push(globToRegExp(key));
+            regexImportValues.push(globToRegExp(importPackage));
 
             break;
          }
@@ -356,7 +362,7 @@ function processOptions(options, rollupOptions, name)
       }
    }
 
-   return { packageObj, regexImportLocalMap, regexImportKeys, regexImportValues };
+   return { packageObj, regexImportKeys, regexImportValues };
 }
 
 /**
@@ -366,15 +372,19 @@ function processOptions(options, rollupOptions, name)
  *
  * @param {object}   packageObj - Target `package.json` object.
  *
+ * @param {boolean}  [replace] - Target only the `replace` condition; used by `importsLocal`.
+ *
  * @returns {string | null}   Resolved import value.
  */
-function resolveImportId(source, packageObj)
+function resolveImportId(source, packageObj, replace = false)
 {
    let result = null;
 
+   const options = replace ? { conditions: s_REPLACE_CONDITIONS } : void 0;
+
    try
    {
-      const importPackage = r.imports(packageObj, source)?.[0];
+      const importPackage = r.imports(packageObj, source, options)?.[0];
       if (!importPackage)
       {
          console.warn(
