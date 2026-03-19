@@ -58,13 +58,13 @@ not paired with the former plugins without careful consideration as they serve d
   "imports": {
     "#my-package": {
       "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "replace": "@some-really-long-org-name/my-package"
+      "replace": "@some-really-long-org-name/my-package",
+      "import": "./src/index.ts"
     },
     "#my-package/*": {
       "types": "./src/*/index.ts",
-      "import": "./src/*/index.ts",
-      "replace": "@some-really-long-org-name/my-package/*"
+      "replace": "@some-really-long-org-name/my-package/*",
+      "import": "./src/*/index.ts"
     }
   },
   "exports": {
