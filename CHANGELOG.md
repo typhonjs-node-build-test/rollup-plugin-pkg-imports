@@ -1,4 +1,7 @@
 # Changelog
+## 0.8.0 release (minor)
+- Fix for `@es-joy/resolve.exports` exception for `importsLocal` when missing `replace` condition.
+
 ## 0.7.0 release (major / breaking)
 - Switched to new fork [@es-joy/resolve.exports](https://github.com/es-joy/resolve.exports) allowing an upgrade to 
 `importsLocal` to really work as intended. There was a limitation in the original 
