@@ -313,20 +313,19 @@ function processOptions(options, rollupOptions, name)
       {
          case 'importsLocal':
          {
-            const importPackage = r.imports(packageObj, key, { conditions: s_REPLACE_CONDITIONS })?.[0];
-
-            if (!importPackage)
+            try
             {
-               // console.warn(
-               //  `@typhonjs-build-test/rollup-plugin-pkg-imports error: Failure to find imports specifier '${key}'.`);
-               continue;
+               const importPackage = r.imports(packageObj, key, { conditions: s_REPLACE_CONDITIONS })?.[0];
+
+               if (!importPackage) { continue; }
+
+               // Skip all local path mappings for imports as the goal is to map packages as external.
+               if (importPackage?.startsWith('.')) { continue; }
+
+               regexImportKeys.push(globToRegExp(key));
+               regexImportValues.push(globToRegExp(importPackage));
             }
-
-            // Skip all local path mappings for imports as the goal is to map packages as external.
-            if (importPackage?.startsWith('.')) { continue; }
-
-            regexImportKeys.push(globToRegExp(key));
-            regexImportValues.push(globToRegExp(importPackage));
+            catch (err) { /**/ }
 
             break;
          }
